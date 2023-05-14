@@ -1,0 +1,11 @@
+{
+  "msg": "suceessful operation",
+  "code": 400,
+  "success": true,
+  "eventId": "ANFJ-23NMN-DNM224-BJDJK3",
+  "error": {
+    "type": "BAD_REQUEST",
+    "title": "invalid request",
+    "details": "input contains ivalid data, amount should be integer"
+  }
+}

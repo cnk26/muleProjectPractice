@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:listener-config name="customer-xpapi-raml-httpListenerConfig">
+        <http:listener-connection host="${http.host}" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="customer-xpapi-raml-config" api="customer-xpapi-raml.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<configuration doc:name="Configuration" doc:id="0868b896-afa0-425e-813a-4d5167910db5" defaultErrorHandler-ref="app-flowglobal-error-handlerError_Handler" />
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="61402ae0-3d76-4d2c-89e3-51c4afb89a41" flowRef="customer-xpapi-raml-main" />
+	<configuration-properties doc:name="Configuration properties" doc:id="7e5ef55c-9d1a-4d2b-bd74-1921b6951d42" file="properties/dev.yaml" />
+	<flow name="customer-xpapi-raml-main">
+        <http:listener config-ref="customer-xpapi-raml-httpListenerConfig" path="/api/*" allowedMethods="POST">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="customer-xpapi-raml-config" />
+		<error-handler ref="apikit-global-error-handlerError_Handler" />
+    </flow>
+    <flow name="customer-xpapi-raml-console">
+        <http:listener config-ref="customer-xpapi-raml-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="customer-xpapi-raml-config" />
+		<error-handler ref="apikit-global-error-handlerError_Handler" />
+    </flow>
+    <flow name="post:\customerState:application\json:customer-xpapi-raml-config">
+        <flow-ref doc:name="Flow Reference to initialize variables" doc:id="da961749-2b06-4a70-ab0d-b37e0229ff73" name="customer-variable-initialize"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2cf09871-12f8-4719-ae46-7756ce714938" message="#[payload]"/>
+		<logger level="INFO" doc:name="Start Logger  to call sapi" doc:id="9629995e-78f6-443b-b8cc-470fa8a9144c" message="Start Logger  to call sapi"/>
+		<flow-ref doc:name="Flow Reference to call customer flow" doc:id="d1057435-73e4-4be5-9776-60953aa6e0c3" name="post-customer-state-implementationFlow"/>
+		<logger level="INFO" doc:name="endLogger call of sapi" doc:id="e0390d90-a779-4bb4-a608-88f83cb3b5b8" />
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  customerStateResponse: {
+    eventInstanceId: "fdknkdgknsfkdmkldknfdkmfdkn",
+    status: true
+  }
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\customers\registration:application\json:customer-xpapi-raml-config">
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  registrationResponse: {
+    eventInstsnceId: "fdknkdgknsfkdmkldknfdkmfdkn",
+    status: "success"
+  }
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>

@@ -1,0 +1,15 @@
+%dw 2.0
+
+type auto_f03abc29_61f9_41de_a9ae_fd6cd5c90769_Input_Payload = {
+  customerStateRequest: {
+    password: String, 
+    countryCode: "+91" | "+1", 
+    mobile?: String, 
+    contactType: "mobile" | "email", 
+    email?: String, 
+    status: Boolean, 
+    _?: Any
+  }, 
+  _?: Any
+}
+
